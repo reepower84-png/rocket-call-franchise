@@ -7,9 +7,9 @@ interface Submission {
   name: string
   phone: string
   message: string
-  createdAt: string
+  created_at: string
   status: 'new' | 'contacted' | 'completed' | 'cancelled'
-  updatedAt?: string
+  updated_at?: string
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -267,7 +267,7 @@ export default function AdminPage() {
                         {submission.message || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-sm">
-                        {formatDate(submission.createdAt)}
+                        {formatDate(submission.created_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
