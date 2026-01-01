@@ -20,13 +20,64 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
-    fetchSubmissions()
+    // 세션 스토리지에서 인증 상태 확인
+    const authStatus = sessionStorage.getItem('admin_authenticated')
+    if (authStatus === 'true') {
+      setIsAuthenticated(true)
+    }
+    setCheckingAuth(false)
   }, [])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSubmissions()
+    }
+  }, [isAuthenticated])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        sessionStorage.setItem('admin_authenticated', 'true')
+        setIsAuthenticated(true)
+      } else {
+        setAuthError(data.error || '로그인에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setAuthError('로그인 중 오류가 발생했습니다.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_authenticated')
+    setIsAuthenticated(false)
+    setPassword('')
+  }
 
   const fetchSubmissions = async () => {
     try {
@@ -96,6 +147,73 @@ export default function AdminPage() {
     completed: submissions.filter(s => s.status === 'completed').length,
   }
 
+  // 인증 상태 확인 중
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-500">로딩 중...</div>
+      </div>
+    )
+  }
+
+  // 로그인 페이지
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <div className="text-4xl mb-3">🔐</div>
+              <h1 className="text-2xl font-bold text-gray-900">관리자 로그인</h1>
+              <p className="text-gray-500 mt-2">로켓콜 어드민 페이지</p>
+            </div>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                  placeholder="관리자 비밀번호를 입력하세요"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {authError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {authError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {authLoading ? '확인 중...' : '로그인'}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <a
+                href="/"
+                className="text-gray-500 hover:text-gray-700 text-sm"
+              >
+                ← 랜딩 페이지로 돌아가기
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 어드민 대시보드
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -107,12 +225,20 @@ export default function AdminPage() {
               <h1 className="text-xl font-bold text-gray-900">로켓콜 어드민</h1>
               <span className="text-sm text-orange-500 font-medium">프랜차이즈</span>
             </div>
-            <a
-              href="/"
-              className="text-gray-600 hover:text-gray-900 text-sm"
-            >
-              ← 랜딩 페이지로
-            </a>
+            <div className="flex items-center gap-4">
+              <a
+                href="/"
+                className="text-gray-600 hover:text-gray-900 text-sm"
+              >
+                ← 랜딩 페이지로
+              </a>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                로그아웃
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -195,7 +321,7 @@ export default function AdminPage() {
               onClick={fetchSubmissions}
               className="ml-auto px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             >
-              🔄 새로고침
+              새로고침
             </button>
           </div>
         </div>
