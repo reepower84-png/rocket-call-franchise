@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// Discord 웹훅으로 알림 전송
+// Discord 웹훅으로 알림 전송 (타임아웃 및 재시도 포함)
 async function sendDiscordNotification(name: string, phone: string, message: string | null) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
 
@@ -36,23 +36,44 @@ async function sendDiscordNotification(name: string, phone: string, message: str
     timestamp: new Date().toISOString(),
   }
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        embeds: [embed],
-      }),
-    })
+  const maxRetries = 3
 
-    if (!response.ok) {
-      console.error('Discord webhook error:', response.status, await response.text())
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10초 타임아웃
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          embeds: [embed],
+        }),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        console.log('Discord notification sent successfully')
+        return
+      } else {
+        console.error('Discord webhook error:', response.status, await response.text())
+      }
+    } catch (error) {
+      clearTimeout(timeoutId)
+      console.error(`Discord notification attempt ${attempt} failed:`, error)
+
+      if (attempt < maxRetries) {
+        // 재시도 전 잠시 대기 (1초, 2초, 3초...)
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+      }
     }
-  } catch (error) {
-    console.error('Discord notification error:', error)
   }
+
+  console.error('Discord notification failed after all retries')
 }
 
 export async function POST(request: NextRequest) {
@@ -89,8 +110,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Discord로 알림 전송 (비동기로 처리, 실패해도 응답에 영향 없음)
-    sendDiscordNotification(name, phone, message).catch(console.error)
+    // Discord로 알림 전송 (완료될 때까지 대기)
+    await sendDiscordNotification(name, phone, message)
 
     return NextResponse.json(
       { success: true, message: '상담 신청이 완료되었습니다.', data },
