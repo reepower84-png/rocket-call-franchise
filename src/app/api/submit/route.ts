@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 
 // Discord 웹훅으로 알림 전송 (타임아웃 및 재시도 포함)
 async function sendDiscordNotification(name: string, phone: string, message: string | null) {
@@ -89,32 +88,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Supabase에 데이터 저장
-    const { data, error } = await supabase
-      .from('submissions')
-      .insert([
-        {
-          name,
-          phone,
-          message: message || null,
-          status: 'new',
-        }
-      ])
-      .select()
-
-    if (error) {
-      console.error('Supabase insert error:', error)
-      return NextResponse.json(
-        { error: '데이터 저장에 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // Discord로 알림 전송 (완료될 때까지 대기)
+    // Discord로 알림 직접 전송
     await sendDiscordNotification(name, phone, message)
 
     return NextResponse.json(
-      { success: true, message: '상담 신청이 완료되었습니다.', data },
+      { success: true, message: '상담 신청이 완료되었습니다.' },
       { status: 200 }
     )
   } catch (error) {
@@ -126,27 +104,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  try {
-    const { data, error } = await supabase
-      .from('submissions')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Supabase fetch error:', error)
-      return NextResponse.json(
-        { error: '데이터를 불러오는데 실패했습니다.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Get submissions error:', error)
-    return NextResponse.json(
-      { error: '데이터를 불러오는데 실패했습니다.' },
-      { status: 500 }
-    )
-  }
-}
