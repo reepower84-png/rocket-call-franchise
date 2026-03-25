@@ -144,6 +144,16 @@ export default function ContactForm() {
                   )}
                 </button>
 
+                {/* KakaoTalk Button */}
+                <a
+                  href="http://pf.kakao.com/_zxfugn/chat"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-[#FEE500] text-[#191919] font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-center"
+                >
+                  💬 카카오톡으로 상담하기
+                </a>
+
                 {/* Privacy Notice */}
                 <p className="text-center text-gray-500 text-sm">
                   입력하신 정보는 상담 목적으로만 사용됩니다
