@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-400 py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
           {/* Company Info */}
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -68,6 +68,69 @@ export default function Footer() {
                   제안서 보기
                 </a>
               </div>
+            </div>
+          </div>
+
+          {/* 계열사 */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-4">계열사</h3>
+            <div className="space-y-3">
+              <a
+                href="https://rk-intro.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜 인트로
+              </a>
+              <a
+                href="https://rocket-call.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_보험설계사
+              </a>
+              <a
+                href="https://rocket-call-auto-dealer.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_자동차딜러
+              </a>
+              <a
+                href="https://rocket-call-realestate.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_부동산분양
+              </a>
+              <a
+                href="https://rocket-call-hospital.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_병원
+              </a>
+              <a
+                href="https://rk-policy.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_정책자금
+              </a>
+              <a
+                href="https://rk-lawyer.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block hover:text-orange-500 transition-colors"
+              >
+                로켓콜_변호사
+              </a>
             </div>
           </div>
         </div>
