@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { backupFetch } from "../../../lib/inquiry-backup";
 
 // Discord 웹훅으로 알림 전송 (타임아웃 및 재시도 포함)
 async function sendDiscordNotification(name: string, phone: string, message: string | null) {
@@ -42,7 +43,7 @@ async function sendDiscordNotification(name: string, phone: string, message: str
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10초 타임아웃
 
     try {
-      const response = await fetch(webhookUrl, {
+      const response = await backupFetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
